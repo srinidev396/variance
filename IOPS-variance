@@ -1,0 +1,30 @@
+import pandas as pd
+
+# Path to your Excel file
+file_path = r"C:performance_comparison.xlsx"
+
+# Read the sheets
+df1 = pd.read_excel(file_path, sheet_name='Dataset1')
+df2 = pd.read_excel(file_path, sheet_name='Dateset2')
+
+# Ensure ReadRatio(%) and IOSize(KB) match
+if not (df1['ReadRatio(%)'].equals(df2['ReadRatio(%)']) and df1['IOSize(KB)'].equals(df2['IOSize(KB)'])):
+    raise ValueError("ReadRatio(%) or IOSize(KB) columns do not match between Dataset1 and Dateset2.")
+
+# Calculate IOPS variance (Dataset2 - Dataset1)
+variance = df2['IOPS'] - df1['IOPS']
+
+# Create a new DataFrame for the variance
+variance_df = pd.DataFrame({
+    'ReadRatio(%)': df1['ReadRatio(%)'],
+    'IOSize(KB)': df1['IOSize(KB)'],
+    'IOPS_Dataset1': df1['IOPS'],
+    'IOPS_Dataset2': df2['IOPS'],
+    'Variance': variance
+})
+
+# Add the new sheet to the existing Excel file
+with pd.ExcelWriter(file_path, engine='openpyxl', mode='a') as writer:
+    variance_df.to_excel(writer, sheet_name='IOPSvar', index=False)
+
+print("Sheet 'IOPSvar' with IOPS variance has been created successfully!")
